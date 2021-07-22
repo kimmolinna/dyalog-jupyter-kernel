@@ -110,10 +110,19 @@ class DyalogKernel(Kernel):
         }
         self.send_response(self.iopub_socket, 'execute_result', _content)
 
+    def out_md(self, s):
+        s=s.replace('\n      ', '\n')
+        writeln(s)
+        _content = {
+            'data': {'text/markdown': s},
+            'execution_count': self.execution_count,
+            'metadata':''
+        }
+        self.send_response(self.iopub_socket, 'execute_result', _content)
+
     def out_vl(self, s):
         s=s.replace('\n      ', '')
         s=s.replace('\n', '')
-        debug(s)
         _content = {
             'data': {
                 'application/vnd.vegalite.v4+json': json.loads(s)
@@ -357,6 +366,7 @@ class DyalogKernel(Kernel):
                 match = re.search('^%suspend\s+(\w+)$',lines[0].lower(), re.IGNORECASE)
                 nsmatch = re.match('^\\s*:namespace|:class|:interface',lines[0].lower())
                 vlmatch = re.match('^\\s*:vega-lite',lines[0].lower())
+                mdmatch = re.match('^\\s*:markdown',lines[0].lower())
 
                 if match:
                     suspend = match.group(1)
@@ -395,6 +405,8 @@ class DyalogKernel(Kernel):
                         lines = []
                 elif vlmatch:                
                     lines=lines[1:]
+                elif mdmatch:                
+                    lines=lines[1:]
                 try:
                     # the windows interpreter can only handle ~125 chacaters at a time, so we do one line at a time
                     for line in lines:
@@ -431,6 +443,8 @@ class DyalogKernel(Kernel):
                                         else:
                                             if vlmatch:
                                                 self.out_vl(data_collection)
+                                            elif mdmatch:
+                                                self.out_md(data_collection)
                                             else:
                                                 self.out_result(data_collection)
                                         data_collection = ''
