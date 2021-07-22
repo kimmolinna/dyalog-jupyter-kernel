@@ -40,7 +40,7 @@ dq = deque()
 
 def debug(s):
     if DYALOGJUPYTERKERNELDEBUG:
-     writeln(s)
+        writeln(s)
 
 
 def writeln(s):
@@ -251,7 +251,7 @@ class DyalogKernel(Kernel):
                     0] + "\\dyalog.exe"
                 CloseKey(dyalogKey)
                 CloseKey(lastKey)
-                self.dyalog_subprocess = subprocess.Popen([dyalogPath, "RIDE_SPAWNED=1","DYALOG_NETCORE=1", 'RIDE_INIT=SERVE::' + str(
+                self.dyalog_subprocess = subprocess.Popen([dyalogPath, "RIDE_SPAWNED=1","DYALOG_NETCORE=1","Dyalog_LineEditor_Mode=1", 'RIDE_INIT=SERVE::' + str(
                     self._port).strip(), 'LOG_FILE=nul', os.path.dirname(os.path.abspath(__file__)) + '/init.dws'])
             else:
                 # linux, darwin... etc
@@ -350,7 +350,7 @@ class DyalogKernel(Kernel):
         _data[1] = (l >> 16) & 0xff
         _data[2] = (l >> 8) & 0xff
         _data[3] = l & 0xff
-
+        
         self.dyalogTCP.sendall(_data)
         debug("SEND " + _data[8:].decode("utf-8"))
 
@@ -395,6 +395,9 @@ class DyalogKernel(Kernel):
                 elif lines[0].lower() == ']dinput':
                     self.define_function(lines[1:])
                     lines = []                
+                elif lines[0].lower() == ':multiline':
+                    self.multiline_function(lines[1:])
+                    lines = []                                    
                 elif nsmatch:
                     if not re.match(":end"+re.sub("^\\s*:",'',nsmatch.group(0)),lines[-1].lower()):
                         self.out_error("DEFN ERROR: No "+":End"+re.sub("^\\s*:",'',nsmatch.group(0)))
@@ -513,6 +516,19 @@ class DyalogKernel(Kernel):
             self.execute_line("{''≢0⍴r←⎕FX ⍵:511 ⎕SIGNAL⍨'DEFN ERROR: Issue on line ',⍕r}⎕SE.Dyalog.ipyFn\n")
         self.execute_line("⎕EX'⎕SE.Dyalog.ipyFn'\n")
         self.ride_receive_wait()
+        while len(dq) > 0:
+            msg = dq.pop()
+            if msg == ["HadError", {"error": 511, "dmx": 0}]:
+                msg = dq.pop()
+                if msg[0] == 'AppendSessionOutput':
+                    self.out_error(msg[1].get('result'))
+
+    def multiline_function(self, lines):
+        for line in lines:
+            self.execute_line(line+"\n")
+        self.execute_line("\n")
+        self.ride_receive_wait()
+        dq.clear()
         while len(dq) > 0:
             msg = dq.pop()
             if msg == ["HadError", {"error": 511, "dmx": 0}]:
