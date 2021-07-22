@@ -112,9 +112,7 @@ class DyalogKernel(Kernel):
 
     def out_vl(self, s):
         s=s.replace('\n      ', '')
-        s=s.replace('\r', '')
         s=s.replace('\n', '')
-        #s=s.replace('\\r', '')
         debug(s)
         _content = {
             'data': {
@@ -127,7 +125,7 @@ class DyalogKernel(Kernel):
 
     def out_result(self, s):
         # injecting css: white-space:pre. Means no wrapping, RIDE SetPW will take care about line wrapping
-
+         
         html_start = '<span style="white-space:pre; font-family: monospace">'
         html_end = '</span>'
 
