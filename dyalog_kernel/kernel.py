@@ -112,7 +112,6 @@ class DyalogKernel(Kernel):
 
     def out_md(self, s):
         s=s.replace('\n      ', '\n')
-        writeln(s)
         _content = {
             'data': {'text/markdown': s},
             'execution_count': self.execution_count,
