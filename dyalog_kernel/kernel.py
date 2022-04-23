@@ -104,24 +104,13 @@ class DyalogKernel(Kernel):
         _content = {
             # 'output_type': 'dispslay_data',
             'data': {'text/html': s},
-            'execution_count': self.execution_count,
-            'metadata': ''
+            'metadata': {},
+            'transient': {}
             # 'transient': ''
         }
-        self.send_response(self.iopub_socket, 'execute_result', _content)
-
-    def out_md(self, s):
-        s=s.replace('\n      ', '\n')
-        _content = {
-            'data': {'text/markdown': s},
-            'execution_count': self.execution_count,
-            'metadata':''
-        }
-        self.send_response(self.iopub_socket, 'execute_result', _content)
+        self.send_response(self.iopub_socket, 'display_data', _content)
 
     def out_vl(self, s):
-        s=s.replace('\n      ', '')
-        s=s.replace('\n', '')
         _content = {
             'data': {
                 'application/vnd.vegalite.v4+json': json.loads(s)
@@ -251,7 +240,7 @@ class DyalogKernel(Kernel):
                     0] + "\\dyalog.exe"
                 CloseKey(dyalogKey)
                 CloseKey(lastKey)
-                self.dyalog_subprocess = subprocess.Popen([dyalogPath, "RIDE_SPAWNED=1","DYALOG_NETCORE=1","Dyalog_LineEditor_Mode=1", 'RIDE_INIT=SERVE::' + str(
+                self.dyalog_subprocess = subprocess.Popen([dyalogPath, "RIDE_SPAWNED=1", 'RIDE_INIT=SERVE::' + str(
                     self._port).strip(), 'LOG_FILE=nul', os.path.dirname(os.path.abspath(__file__)) + '/init.dws'])
             else:
                 # linux, darwin... etc
@@ -366,6 +355,7 @@ class DyalogKernel(Kernel):
                 nsmatch = re.match('^\\s*:namespace|:class|:interface',lines[0].lower())
                 vlmatch = re.match('^\\s*]vegalite',lines[0].lower())
                 mdmatch = re.match('^\\s*]markdown',lines[0].lower())
+                htmlmatch = re.match('^\\s*]htmlpage',lines[0].lower())
 
                 if match:
                     suspend = match.group(1)
@@ -396,8 +386,9 @@ class DyalogKernel(Kernel):
                     self.define_function(lines[1:])
                     lines = []                
                 elif lines[0].lower() == ']multiline':
-                    self.multiline_function(lines[1:])
-                    lines = []                                    
+                    lines = lines[1:].join(' ')
+                    lines = lines.replace('```', '\'')
+                    lines = [lines]
                 elif nsmatch:
                     if not re.match(":end"+re.sub("^\\s*:",'',nsmatch.group(0)),lines[-1].lower()):
                         self.out_error("DEFN ERROR: No "+":End"+re.sub("^\\s*:",'',nsmatch.group(0)))
@@ -405,9 +396,7 @@ class DyalogKernel(Kernel):
                     else:
                         self.define_function(lines)
                         lines = []
-                elif vlmatch:                
-                    lines=lines[1:]
-                elif mdmatch:                
+                elif vlmatch or mdmatch or htmlmatch:                
                     lines=lines[1:]
                 try:
                     # the windows interpreter can only handle ~125 chacaters at a time, so we do one line at a time
@@ -447,6 +436,8 @@ class DyalogKernel(Kernel):
                                                 self.out_vl(data_collection)
                                             elif mdmatch:
                                                 self.out_md(data_collection)
+                                            elif htmlmatch:
+                                                self.out_html(data_collection)
                                             else:
                                                 self.out_result(data_collection)
                                         data_collection = ''
