@@ -1,5 +1,5 @@
 {
-	"argv": ["python", "-m", "dyalog_kernel",
+	"argv": ["python3", "-m", "dyalog_kernel",
 			 "-f", "{connection_file}"],
 	"display_name": "Dyalog APL",
 	"language": "apl"
