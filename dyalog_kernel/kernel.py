@@ -354,8 +354,6 @@ class DyalogKernel(Kernel):
                 match = re.search('^%suspend\s+(\w+)$',lines[0].lower(), re.IGNORECASE)
                 nsmatch = re.match('^\\s*:namespace|:class|:interface',lines[0].lower())
                 vlmatch = re.match('^\\s*]vegalite',lines[0].lower())
-                mdmatch = re.match('^\\s*]markdown',lines[0].lower())
-                htmlmatch = re.match('^\\s*]htmlpage',lines[0].lower())
 
                 if match:
                     suspend = match.group(1)
@@ -388,7 +386,7 @@ class DyalogKernel(Kernel):
                 elif lines[0].lower() == ']multiline':
                     lines = ' '.join(lines[1:])
                     lines = lines.replace('```', '\'')
-                    lines = re.sub("\s\s+" , " ", lines)
+                    lines = re.sub("\s\s+" ,' ', lines) + '\n'
                     lines = [lines]
                 elif nsmatch:
                     if not re.match(":end"+re.sub("^\\s*:",'',nsmatch.group(0)),lines[-1].lower()):
@@ -397,7 +395,7 @@ class DyalogKernel(Kernel):
                     else:
                         self.define_function(lines)
                         lines = []
-                elif vlmatch or mdmatch or htmlmatch:                
+                elif vlmatch:              
                     lines=lines[1:]
                 try:
                     # the windows interpreter can only handle ~125 chacaters at a time, so we do one line at a time
@@ -435,10 +433,6 @@ class DyalogKernel(Kernel):
                                         else:
                                             if vlmatch:
                                                 self.out_vl(data_collection)
-                                            elif mdmatch:
-                                                self.out_md(data_collection)
-                                            elif htmlmatch:
-                                                self.out_html(data_collection)
                                             else:
                                                 self.out_result(data_collection)
                                         data_collection = ''
