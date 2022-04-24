@@ -386,8 +386,9 @@ class DyalogKernel(Kernel):
                     self.define_function(lines[1:])
                     lines = []                
                 elif lines[0].lower() == ']multiline':
-                    lines = lines[1:].join(' ')
+                    lines = ' '.join(lines[1:])
                     lines = lines.replace('```', '\'')
+                    lines = re.sub("\s\s+" , " ", lines)
                     lines = [lines]
                 elif nsmatch:
                     if not re.match(":end"+re.sub("^\\s*:",'',nsmatch.group(0)),lines[-1].lower()):
@@ -507,19 +508,6 @@ class DyalogKernel(Kernel):
             self.execute_line("{''≢0⍴r←⎕FX ⍵:511 ⎕SIGNAL⍨'DEFN ERROR: Issue on line ',⍕r}⎕SE.Dyalog.ipyFn\n")
         self.execute_line("⎕EX'⎕SE.Dyalog.ipyFn'\n")
         self.ride_receive_wait()
-        while len(dq) > 0:
-            msg = dq.pop()
-            if msg == ["HadError", {"error": 511, "dmx": 0}]:
-                msg = dq.pop()
-                if msg[0] == 'AppendSessionOutput':
-                    self.out_error(msg[1].get('result'))
-
-    def multiline_function(self, lines):
-        for line in lines:
-            self.execute_line(line+"\n")
-        self.execute_line("\n")
-        self.ride_receive_wait()
-        dq.clear()
         while len(dq) > 0:
             msg = dq.pop()
             if msg == ["HadError", {"error": 511, "dmx": 0}]:
