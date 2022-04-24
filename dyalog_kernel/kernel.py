@@ -385,6 +385,7 @@ class DyalogKernel(Kernel):
                     lines = []                
                 elif lines[0].lower() == ']multiline':
                     lines = ' '.join(lines[1:])
+                    lines = lines.replace('\'', '\'\'')
                     lines = lines.replace('```', '\'')
                     lines = re.sub("\s\s+" ,' ', lines) + '\n'
                     lines = [lines,'']
