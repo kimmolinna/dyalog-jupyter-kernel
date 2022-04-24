@@ -387,7 +387,7 @@ class DyalogKernel(Kernel):
                     lines = ' '.join(lines[1:])
                     lines = lines.replace('```', '\'')
                     lines = re.sub("\s\s+" ,' ', lines) + '\n'
-                    lines = [lines]
+                    lines = [lines,'']
                 elif nsmatch:
                     if not re.match(":end"+re.sub("^\\s*:",'',nsmatch.group(0)),lines[-1].lower()):
                         self.out_error("DEFN ERROR: No "+":End"+re.sub("^\\s*:",'',nsmatch.group(0)))
