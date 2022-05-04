@@ -247,6 +247,8 @@ class DyalogKernel(Kernel):
                 dyalog_env = os.environ.copy()
                 dyalog_env['RIDE_INIT'] = 'SERVE:*:' + str(self._port).strip()
                 dyalog_env['RIDE_SPAWNED'] = '1'
+                dyalog_env['DYALOG_NETCORE'] = '1'
+                dyalog_env['DOTNET_ROOT'] = '/snap/dotnet-sdk/current'
                 dyalog_env['ENABLE_CEF'] = '0'
                 dyalog_env['LOG_FILE'] = '/dev/null'
                 if sys.platform.lower() == "darwin":
