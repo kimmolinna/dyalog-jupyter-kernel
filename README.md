@@ -8,7 +8,8 @@ Please see [our wiki](https://github.com/Dyalog/dyalog-jupyter-kernel/wiki).
 
 A collection of ready-made notebooks is available [here](https://github.com/Dyalog/dyalog-jupyter-notebooks).
 
-## Support for native render support for vega-lite
+## Added by Kimmo Linna:
+## Native render support for vega-lite
 
 Use `]vega-lite` tag for correct mime-type.
 
