@@ -12,7 +12,6 @@ from collections import deque
 
 from ipykernel.kernelbase import Kernel
 from dyalog_kernel import __version__
-from notebook.services.config import ConfigManager
 
 if sys.platform.lower().startswith('win'):
     from winreg import *
@@ -122,9 +121,9 @@ class DyalogKernel(Kernel):
 
     def out_result(self, s):
         # injecting css: white-space:pre. Means no wrapping, RIDE SetPW will take care about line wrapping
-         
-        html_start = '<span style="white-space:pre; font-family: monospace">'
-        html_end = '</span>'
+
+        html_start = '<pre class="language-APL">'
+        html_end = '</pre>'
 
         _content = {
             # 'output_type': 'display_data',
@@ -240,7 +239,7 @@ class DyalogKernel(Kernel):
                     0] + "\\dyalog.exe"
                 CloseKey(dyalogKey)
                 CloseKey(lastKey)
-                self.dyalog_subprocess = subprocess.Popen([dyalogPath, "RIDE_SPAWNED=1", 'RIDE_INIT=SERVE::' + str(
+                self.dyalog_subprocess = subprocess.Popen([dyalogPath, "RIDE_SPAWNED=1", "DYALOGQUIETUCMDBUILD=1", 'RIDE_INIT=SERVE::' + str(
                     self._port).strip(), 'LOG_FILE=nul', os.path.dirname(os.path.abspath(__file__)) + '/init.dws'])
             else:
                 # linux, darwin... etc
@@ -249,6 +248,7 @@ class DyalogKernel(Kernel):
                 dyalog_env['RIDE_SPAWNED'] = '1'
                 dyalog_env['DYALOG_NETCORE'] = '1'
                 dyalog_env['DOTNET_ROOT'] = '/snap/dotnet-sdk/current'
+                dyalog_env['DYALOGQUIETUCMDBUILD'] = '1'
                 dyalog_env['ENABLE_CEF'] = '0'
                 dyalog_env['LOG_FILE'] = '/dev/null'
                 if sys.platform.lower() == "darwin":
@@ -264,12 +264,6 @@ class DyalogKernel(Kernel):
                                              )[-1] + '/' + 'mapl'
                 self.dyalog_subprocess = subprocess.Popen([dyalog, '+s', '-q', os.path.dirname(os.path.abspath(
                     __file__)) + '/init.dws'], stdin=subprocess.PIPE, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, env=dyalog_env)
-
-        # disable auto closing of brackets/quotation marks. Not very useful in APL
-        # Pass None instead of False to restore auto-closing feature
-        c = ConfigManager()
-        c.update('notebook', {'CodeCell': {
-                 'cm_config': {'autoCloseBrackets': False}}})
 
         Kernel.__init__(self, **kwargs)
 
